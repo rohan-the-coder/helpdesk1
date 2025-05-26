@@ -17,9 +17,14 @@ const Login = () => {
     setLoading(true);
     try {
       const res = await authService.login(form);
-      login(res);
-      navigate("/dashboard");
+      if (res?.user && res?.token) {
+        login(res); // sets context
+        navigate("/dashboard"); // navigate AFTER login
+      } else {
+        setError("Unexpected login response. Please try again.");
+      }
     } catch (err) {
+      console.error("Login error:", err);
       setError(err.response?.data?.message || "Login failed");
     } finally {
       setLoading(false);
@@ -28,17 +33,14 @@ const Login = () => {
 
   return (
     <div className="min-h-screen bg-[#0F0F0F] text-white">
-      {/* Header */}
       <header className="w-full bg-[#000000] shadow-md">
         <div className="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
           <Link to="/" className="text-white text-2xl font-bold tracking-wide">
             <span className="text-indigo-500">HelpDesk</span>.io
           </Link>
-         
         </div>
       </header>
 
-      {/* Login Form */}
       <div className="flex items-center justify-center px-4 py-12">
         <form
           onSubmit={handleSubmit}

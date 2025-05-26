@@ -1,6 +1,5 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import authService from "../services/authService";
 
 const AuthContext = createContext();
 
@@ -10,26 +9,35 @@ export const AuthProvider = ({ children }) => {
   const navigate = useNavigate();
 
   const [user, setUser] = useState(() => {
-    // Try to get user data from localStorage on initial load
-    const storedUser = localStorage.getItem("user");
-    return storedUser ? JSON.parse(storedUser) : null;
+    try {
+      const storedUser = localStorage.getItem("user");
+      return storedUser && storedUser !== "undefined"
+        ? JSON.parse(storedUser)
+        : null;
+    } catch (error) {
+      console.error("Failed to parse user from localStorage:", error);
+      return null;
+    }
   });
 
   const [token, setToken] = useState(() => {
-    return localStorage.getItem("token") || null;
+    const storedToken = localStorage.getItem("token");
+    return storedToken && storedToken !== "undefined" ? storedToken : null;
   });
 
   const [loading, setLoading] = useState(false);
 
-  // Save user and token to localStorage
   const login = (data) => {
-    setUser(data.user);
-    setToken(data.token);
-    localStorage.setItem("user", JSON.stringify(data.user));
-    localStorage.setItem("token", data.token);
+    if (data?.user && data?.token) {
+      setUser(data.user);
+      setToken(data.token);
+      localStorage.setItem("user", JSON.stringify(data.user));
+      localStorage.setItem("token", data.token);
+    } else {
+      console.warn("Invalid login data:", data);
+    }
   };
 
-  // Clear user and token on logout
   const logout = () => {
     setUser(null);
     setToken(null);
@@ -38,12 +46,8 @@ export const AuthProvider = ({ children }) => {
     navigate("/login");
   };
 
-  // Helper: check if user is authenticated
   const isAuthenticated = () => !!token;
 
-  // Optional: token refresh or validation logic here
-
-  // Provide context values
   const value = {
     user,
     token,

@@ -2,7 +2,8 @@ import axios from "../utils/axios";
 
 const login = async (credentials) => {
   const response = await axios.post("/auth/login", credentials);
-  return response.data;
+  console.log("Login API response:", response.data); // for debugging
+  return response.data; // should be { user, token }
 };
 
 const register = async (userData) => {
