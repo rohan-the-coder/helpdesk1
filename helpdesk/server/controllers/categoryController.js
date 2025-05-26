@@ -12,9 +12,13 @@ exports.createCategory = async (req, res) => {
 
 exports.getCategories = async (req, res) => {
   try {
-    const categories = await Category.find();
+    const categories = await Category.find().sort({ name: 1 });
     res.json(categories);
   } catch (err) {
-    res.status(500).json({ message: "Error fetching categories" });
+    console.error("Error fetching categories:", err);
+    res.status(500).json({ 
+      message: "Error fetching categories",
+      error: err.message 
+    });
   }
 };

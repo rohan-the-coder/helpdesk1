@@ -9,7 +9,7 @@ const ticketSchema = new mongoose.Schema({
     enum: ["Open", "In Progress", "Resolved", "Closed"],
     default: "Open"
   },
-  createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+  createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
   assignedTo: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
   comments: [
     {

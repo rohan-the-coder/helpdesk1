@@ -1,5 +1,5 @@
 import React from "react";
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route } from "react-router-dom";
 import Login from "../pages/auth/Login";
 import Register from "../pages/auth/Register";
 import NotFound from "../pages/NotFound";
@@ -13,35 +13,32 @@ import AdminDashboard from "../pages/Dashboard/AdminDashboard";
 import ManageUsers from "../pages/Admin/ManageUsers";
 import ManageCategories from "../pages/Admin/ManageCategories";
 
-
-
-// Common Pages
+// Ticket Pages
+import TicketList from "../pages/Tickets/TicketList";
 import TicketDetails from "../pages/Tickets/TicketDetails";
+import TicketCreate from "../pages/Tickets/TicketCreate";
 
 import ProtectedRoute from "./ProtectedRoute";
 import Landing from "../pages/Landing";
-import TicketCreate from "../pages/Tickets/TicketCreate";
 
 const AppRoutes = () => {
   return (
     <Routes>
       {/* Public Routes */}
-      <Route path="/" element={<Landing/>} />
-      <Route path="/login" element={<Login/>}/>
+      <Route path="/" element={<Landing />} />
+      <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
 
-      {/* Protected Routes */}
+      {/* Dashboard Routes */}
       <Route
         path="/dashboard"
         element={
           <ProtectedRoute>
+            <UserDashboard />
           </ProtectedRoute>
         }
-      >
-        {/* Nested dashboards */}
-        <Route index element={<Navigate to="user" />} />
-
-        <Route
+      />
+<Route
           path="user"
           element={
             <ProtectedRoute allowedRoles={["user"]}>
@@ -59,34 +56,8 @@ const AppRoutes = () => {
           }
         />
 
-        <Route
-          path="admin"
-          element={
-            <ProtectedRoute allowedRoles={["admin"]}>
-              <AdminDashboard />
-            </ProtectedRoute>
-          }
-        />
-      </Route>
 
       {/* Admin Pages */}
-      <Route
-        path="/admin/manage-users"
-        element={
-          <ProtectedRoute allowedRoles={["admin"]}>
-            <ManageUsers />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/admin/manage-categories"
-        element={
-          <ProtectedRoute allowedRoles={["admin"]}>
-            <ManageCategories />
-          </ProtectedRoute>
-        }
-      />
-
       {/* Agent Page */}
       <Route
         path="/agent/create-ticket"
@@ -103,6 +74,62 @@ const AppRoutes = () => {
         element={
           <ProtectedRoute>
             <TicketDetails />
+          </ProtectedRoute>
+        }
+      />
+
+
+      {/* Ticket Routes */}
+      <Route
+        path="/tickets"
+        element={
+          <ProtectedRoute>
+            <TicketList />
+          </ProtectedRoute>
+        }
+      />
+      
+      <Route
+        path="/tickets/create"
+        element={
+          <ProtectedRoute>
+            <TicketCreate />
+          </ProtectedRoute>
+        }
+      />
+
+<Route
+          path="admin"
+          element={
+            <ProtectedRoute allowedRoles={["admin"]}>
+              <AdminDashboard />
+            </ProtectedRoute>
+          }
+        />
+      <Route
+        path="/tickets/:id"
+        element={
+          <ProtectedRoute>
+            <TicketDetails />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Admin Routes */}
+      <Route
+        path="/admin/manage-users"
+        element={
+          <ProtectedRoute allowedRoles={["admin"]}>
+            <ManageUsers />
+          </ProtectedRoute>
+        }
+      />
+      
+      <Route
+        path="/admin/manage-categories"
+        element={
+          <ProtectedRoute allowedRoles={["admin"]}>
+            <ManageCategories />
           </ProtectedRoute>
         }
       />

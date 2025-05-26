@@ -1,19 +1,31 @@
-import axios from "../utils/axios";
-
-const login = async (credentials) => {
-  const response = await axios.post("/auth/login", credentials);
-  console.log("Login API response:", response.data); // for debugging
-  return response.data; // should be { user, token }
-};
-
-const register = async (userData) => {
-  const response = await axios.post("/auth/register", userData);
-  return response.data;
-};
+import api from '../api';
 
 const authService = {
-  login,
-  register,
+  register: async (userData) => {
+    try {
+      const response = await api.post('/api/auth/register', userData);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
+
+  login: async (credentials) => {
+    try {
+      const response = await api.post('/api/auth/login', credentials);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
+
+  logout: async () => {
+    try {
+      await api.post('/api/auth/logout');
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  }
 };
 
 export default authService;
