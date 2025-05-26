@@ -9,6 +9,11 @@ exports.createTicket = async (req, res) => {
       status: "Open"
     };
 
+    // Add attachment if file was uploaded
+    if (req.file) {
+      ticketData.attachment = `/uploads/${req.file.filename}`;
+    }
+
     const ticket = new Ticket(ticketData);
     await ticket.save();
 
@@ -28,9 +33,23 @@ exports.createTicket = async (req, res) => {
 
 exports.getTickets = async (req, res) => {
   try {
-    // Users can only see their own tickets
-    const tickets = await Ticket.find({ createdBy: req.user.userId })
+    let query = {};
+    const userRole = req.user.role.toLowerCase();
+    
+    // If user is not admin or agent, only show their tickets
+    if (userRole === 'user') {
+      query.createdBy = req.user.userId;
+    } else if (userRole === 'agent') {
+      // For agents, show all open tickets and tickets assigned to them
+      query.$or = [
+        { status: 'Open' },
+        { assignedTo: req.user.userId }
+      ];
+    }
+    
+    const tickets = await Ticket.find(query)
       .populate("createdBy", "name email")
+      .populate("assignedTo", "name email")
       .populate("category", "name")
       .sort({ createdAt: -1 });
 
@@ -52,7 +71,8 @@ exports.getTicketById = async (req, res) => {
     const ticket = await Ticket.findById(req.params.id)
       .populate("createdBy", "name email")
       .populate("category", "name")
-      .populate("comments.author", "name email");
+      .populate("comments.author", "name email")
+      .populate("assignedTo", "name email");
 
     console.log('Found ticket:', ticket);
 
@@ -67,9 +87,15 @@ exports.getTicketById = async (req, res) => {
       return res.json(ticket);
     }
 
-    // Check if the user is authorized to view this ticket
-    if (ticket.createdBy._id.toString() !== req.user.userId) {
-      console.log('Authorization failed. Ticket createdBy:', ticket.createdBy._id.toString(), 'User:', req.user.userId);
+    const userRole = req.user.role.toLowerCase();
+    const isAdmin = userRole === 'admin';
+    const isAgent = userRole === 'agent';
+    const isTicketCreator = ticket.createdBy._id.toString() === req.user.userId;
+    const isAssignedAgent = ticket.assignedTo && ticket.assignedTo._id.toString() === req.user.userId;
+
+    // Allow access if user is admin, agent assigned to the ticket, or ticket creator
+    if (!isAdmin && !isAgent && !isTicketCreator && !isAssignedAgent) {
+      console.log('Authorization failed. User role:', userRole);
       return res.status(403).json({ message: "Not authorized to view this ticket" });
     }
 
@@ -92,19 +118,36 @@ exports.updateTicket = async (req, res) => {
       return res.status(404).json({ message: "Ticket not found" });
     }
 
-    // Check if the user is authorized to update this ticket
-    if (ticket.createdBy.toString() !== req.user.userId) {
+    const userRole = req.user.role.toLowerCase();
+    // Allow agents to update ticket status and add comments
+    if (userRole !== 'agent' && userRole !== 'admin' && ticket.createdBy.toString() !== req.user.userId) {
       return res.status(403).json({ message: "Not authorized to update this ticket" });
     }
 
-    // Only allow updating certain fields
-    const allowedUpdates = ["status"];
+    // Define allowed updates based on role
+    const allowedUpdates = ['status'];
+    if (userRole === 'agent') {
+      // If agent is updating status, automatically assign the ticket
+      if (req.body.status === 'In Progress') {
+        req.body.assignedTo = req.user.userId;
+      }
+    }
+
     const updates = Object.keys(req.body)
-      .filter(key => allowedUpdates.includes(key))
+      .filter(key => allowedUpdates.includes(key) || key === 'assignedTo')
       .reduce((obj, key) => {
         obj[key] = req.body[key];
         return obj;
       }, {});
+
+    // Add comment if provided
+    if (req.body.comment) {
+      ticket.comments.push({
+        text: req.body.comment,
+        author: req.user.userId
+      });
+      await ticket.save();
+    }
 
     const updatedTicket = await Ticket.findByIdAndUpdate(
       req.params.id,
@@ -132,8 +175,11 @@ exports.addComment = async (req, res) => {
       return res.status(404).json({ message: "Ticket not found" });
     }
 
-    // Check if the user is authorized to comment on this ticket
-    if (ticket.createdBy.toString() !== req.user.userId) {
+    // Allow both ticket creator and assigned agent to comment
+    const isCreator = ticket.createdBy.toString() === req.user.userId;
+    const isAssigned = ticket.assignedTo && ticket.assignedTo.toString() === req.user.userId;
+    
+    if (!isCreator && !isAssigned) {
       return res.status(403).json({ message: "Not authorized to comment on this ticket" });
     }
 
@@ -144,6 +190,18 @@ exports.addComment = async (req, res) => {
 
     ticket.comments.push(comment);
     await ticket.save();
+
+    // Create notification for the other party
+    const Notification = require('../models/Notification');
+    const notificationRecipient = isCreator ? ticket.assignedTo : ticket.createdBy;
+    
+    if (notificationRecipient) {
+      const notification = new Notification({
+        user: notificationRecipient,
+        message: `New comment on ticket: ${ticket.title}`,
+      });
+      await notification.save();
+    }
 
     const updatedTicket = await Ticket.findById(req.params.id)
       .populate("createdBy", "name email")

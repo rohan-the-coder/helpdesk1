@@ -9,32 +9,53 @@ exports.register = async (req, res) => {
     if (existingUser) return res.status(400).json({ message: "User already exists" });
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    const user = new User({ name, email, password: hashedPassword, role });
+    const user = new User({ name, email, password: hashedPassword, role: role || "User" });
     await user.save();
 
     res.status(201).json({ message: "User registered successfully" });
   } catch (err) {
-    res.status(500).json({ message: "Server error" });
+    console.error("Registration error:", err);
+    res.status(500).json({ message: "Server error during registration" });
   }
 };
 
 exports.login = async (req, res) => {
-  const { email, password } = req.body;
+  const { email, password, role } = req.body;
   try {
+    // Find user by email
     const user = await User.findOne({ email });
     if (!user) return res.status(400).json({ message: "Invalid email or password" });
 
+    // Verify password
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) return res.status(400).json({ message: "Invalid email or password" });
 
+    // Check if the user's role matches the requested role (optional but recommended for security)
+    if (role && user.role.toLowerCase() !== role.toLowerCase()) {
+      return res.status(403).json({ 
+        message: `Access denied. You are not authorized to login as ${role}` 
+      });
+    }
+
+    // Generate JWT token
     const token = jwt.sign(
       { userId: user._id, role: user.role },
       process.env.JWT_SECRET,
       { expiresIn: "1d" }
     );
 
-    res.json({ token, user: { id: user._id, name: user.name, role: user.role } });
+    // Return success response
+    res.json({ 
+      token, 
+      user: { 
+        id: user._id, 
+        name: user.name, 
+        email: user.email,
+        role: user.role 
+      } 
+    });
   } catch (err) {
-    res.status(500).json({ message: "Server error" });
+    console.error("Login error:", err);
+    res.status(500).json({ message: "Server error during login" });
   }
 };

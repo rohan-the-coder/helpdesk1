@@ -8,6 +8,8 @@ const TicketCreate = () => {
     description: "",
     category: ""
   });
+  const [attachment, setAttachment] = useState(null);
+  const [filePreview, setFilePreview] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [categories, setCategories] = useState([]);
@@ -32,13 +34,46 @@ const TicketCreate = () => {
     setForm({ ...form, [name]: value });
   };
 
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setAttachment(file);
+      // Create a preview URL for the file
+      const previewUrl = URL.createObjectURL(file);
+      setFilePreview(previewUrl);
+    }
+  };
+  
+  // Clean up object URLs to avoid memory leaks
+  useEffect(() => {
+    return () => {
+      if (filePreview) {
+        URL.revokeObjectURL(filePreview);
+      }
+    };
+  }, [filePreview]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError("");
 
     try {
-      await api.post("/api/tickets", form);
+      // Create FormData object to handle file upload
+      const formData = new FormData();
+      formData.append("title", form.title);
+      formData.append("description", form.description);
+      formData.append("category", form.category);
+      
+      if (attachment) {
+        formData.append("attachment", attachment);
+      }
+
+      await api.post("/api/tickets", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data"
+        }
+      });
       navigate("/tickets");
     } catch (err) {
       setError(
@@ -115,6 +150,29 @@ const TicketCreate = () => {
                 placeholder="Please provide detailed information about your issue..."
           required
         />
+            </div>
+
+            <div>
+              <label htmlFor="attachment" className="block text-sm font-medium text-gray-300 mb-1">
+                Attachment (Optional)
+              </label>
+              <input
+                id="attachment"
+                type="file"
+                onChange={handleFileChange}
+                className="w-full px-4 py-2 bg-[#111] border border-gray-700 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              {filePreview && (
+                <div className="mt-2">
+                  <p className="text-sm text-gray-400 mb-1">Selected file:</p>
+                  <div className="flex items-center space-x-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M8 4a3 3 0 00-3 3v4a5 5 0 0010 0V7a1 1 0 112 0v4a7 7 0 11-14 0V7a5 5 0 0110 0v4a3 3 0 11-6 0V7a1 1 0 012 0v4a1 1 0 102 0V7a3 3 0 00-3-3z" clipRule="evenodd" />
+                    </svg>
+                    <span className="text-sm text-gray-300 truncate">{attachment?.name}</span>
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="flex gap-4">

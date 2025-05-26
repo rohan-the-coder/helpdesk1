@@ -15,35 +15,40 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
+    setError("");
+    
     try {
-      if (form.role === "admin") {
-        const error = new Error();
-        error.response = {
-          data: {
-            message: "MongoServerError: E11000 duplicate key error collection: admin.users index: _id_ dup key: { _id: ObjectId('65f7c8d43a7e39b88c9d1234') }"
-          }
-        };
-        throw error;
-      }
-      if (form.role === "agent") {
-        const error = new Error();
-        error.response = {
-          data: {
-            message: "MongooseError: Cast to ObjectId failed for value \"agent_123\" (type string) at path \"_id\" for model \"Agent\""
-          }
-        };
-        throw error;
-      }
-      const res = await authService.login(form);
+      // Send login request with proper role capitalization
+      const loginData = {
+        ...form,
+        role: form.role.charAt(0).toUpperCase() + form.role.slice(1)
+      };
+      
+      const res = await authService.login(loginData);
+      
       if (res?.user && res?.token) {
         login(res);
-        navigate("/dashboard");
+        
+        // Role-based navigation
+        const userRole = res.user.role.toLowerCase();
+        switch (userRole) {
+          case 'admin':
+            navigate("/admin");
+            break;
+          case 'agent':
+            navigate("/agent");
+            break;
+          case 'user':
+          default:
+            navigate("/user");
+            break;
+        }
       } else {
         setError("Unexpected login response. Please try again.");
       }
     } catch (err) {
       console.error("Login error:", err);
-      setError(err.response?.data?.message || "Login failed");
+      setError(err.response?.data?.message || "Login failed. Please check your credentials.");
     } finally {
       setLoading(false);
     }

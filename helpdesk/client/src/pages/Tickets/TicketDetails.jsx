@@ -1,13 +1,17 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
 import api from "../../api";
 
 const TicketDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [ticket, setTicket] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [comment, setComment] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
   const fetchTicket = useCallback(async () => {
       try {
@@ -21,6 +25,22 @@ const TicketDetails = () => {
         setLoading(false);
       }
   }, [id]);
+  
+  const handleCommentSubmit = async (e) => {
+    e.preventDefault();
+    if (!comment.trim()) return;
+    
+    setSubmitting(true);
+    try {
+      const { data } = await api.post(`/api/tickets/${id}/comments`, { text: comment });
+      setTicket(data);
+      setComment("");
+    } catch (err) {
+      setError("Failed to add comment. Please try again.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   useEffect(() => {
     fetchTicket();
@@ -155,6 +175,33 @@ const TicketDetails = () => {
                 No comments yet.
               </div>
             )}
+            
+            {/* Add Comment Form */}
+            <div className="p-6">
+              <form onSubmit={handleCommentSubmit}>
+                <label htmlFor="comment" className="block text-sm font-medium text-gray-300 mb-2">
+                  Add a comment
+                </label>
+                <textarea
+                  id="comment"
+                  rows="3"
+                  value={comment}
+                  onChange={(e) => setComment(e.target.value)}
+                  className="w-full px-4 py-2 bg-[#111] border border-gray-700 rounded-md text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Type your comment here..."
+                  required
+                />
+                <div className="mt-3 flex justify-end">
+                  <button
+                    type="submit"
+                    disabled={submitting || !comment.trim()}
+                    className={`px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${submitting ? 'opacity-75 cursor-not-allowed' : ''}`}
+                  >
+                    {submitting ? 'Submitting...' : 'Add Comment'}
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
         </div>
       </div>

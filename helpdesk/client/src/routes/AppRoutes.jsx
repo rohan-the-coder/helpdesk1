@@ -10,7 +10,7 @@ import AgentDashboard from "../pages/Dashboard/AgentDashboard";
 import AdminDashboard from "../pages/Dashboard/AdminDashboard";
 
 // Admin Pages
-import ManageUsers from "../pages/Admin/ManageUsers";
+import ManageUsers from "../pages/Dashboard/ManageUsers";
 import ManageCategories from "../pages/Admin/ManageCategories";
 
 // Ticket Pages
@@ -29,7 +29,7 @@ const AppRoutes = () => {
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
 
-      {/* Dashboard Routes */}
+      {/* Default Dashboard Route - redirects based on user role */}
       <Route
         path="/dashboard"
         element={
@@ -38,48 +38,65 @@ const AppRoutes = () => {
           </ProtectedRoute>
         }
       />
-<Route
-          path="user"
-          element={
-            <ProtectedRoute allowedRoles={["user"]}>
-              <UserDashboard/>
-            </ProtectedRoute>
-          }
-        />
 
-        <Route
-          path="agent"
-          element={
-            <ProtectedRoute allowedRoles={["agent"]}>
-              <AgentDashboard />
-            </ProtectedRoute>
-          }
-        />
+      {/* Role-specific Dashboard Routes */}
+      <Route
+        path="/user"
+        element={
+          <ProtectedRoute allowedRoles={["user"]}>
+            <UserDashboard />
+          </ProtectedRoute>
+        }
+      />
 
+      <Route
+        path="/agent"
+        element={
+          <ProtectedRoute allowedRoles={["agent"]}>
+            <AgentDashboard />
+          </ProtectedRoute>
+        }
+      />
 
-      {/* Admin Pages */}
-      {/* Agent Page */}
+      <Route
+        path="/admin"
+        element={
+          <ProtectedRoute allowedRoles={["admin"]}>
+            <AdminDashboard />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Agent-specific Routes */}
       <Route
         path="/agent/create-ticket"
         element={
           <ProtectedRoute allowedRoles={["agent"]}>
-            <TicketCreate/>
+            <TicketCreate />
           </ProtectedRoute>
         }
       />
 
-      {/* Ticket detail for all roles */}
+      {/* Admin-specific Routes */}
       <Route
-        path="/tickets/:id"
+        path="/admin/manage-users"
         element={
-          <ProtectedRoute>
-            <TicketDetails />
+          <ProtectedRoute allowedRoles={["admin"]}>
+            <ManageUsers />
+          </ProtectedRoute>
+        }
+      />
+      
+      <Route
+        path="/admin/manage-categories"
+        element={
+          <ProtectedRoute allowedRoles={["admin"]}>
+            <ManageCategories />
           </ProtectedRoute>
         }
       />
 
-
-      {/* Ticket Routes */}
+      {/* Ticket Routes - accessible by all authenticated users */}
       <Route
         path="/tickets"
         element={
@@ -98,38 +115,12 @@ const AppRoutes = () => {
         }
       />
 
-<Route
-          path="admin"
-          element={
-            <ProtectedRoute allowedRoles={["admin"]}>
-              <AdminDashboard />
-            </ProtectedRoute>
-          }
-        />
+      {/* Ticket Details - accessible by all authenticated users */}
       <Route
         path="/tickets/:id"
         element={
           <ProtectedRoute>
             <TicketDetails />
-          </ProtectedRoute>
-        }
-      />
-
-      {/* Admin Routes */}
-      <Route
-        path="/admin/manage-users"
-        element={
-          <ProtectedRoute allowedRoles={["admin"]}>
-            <ManageUsers />
-          </ProtectedRoute>
-        }
-      />
-      
-      <Route
-        path="/admin/manage-categories"
-        element={
-          <ProtectedRoute allowedRoles={["admin"]}>
-            <ManageCategories />
           </ProtectedRoute>
         }
       />
