@@ -43,7 +43,7 @@ const UserDashboard = () => {
     <div className="min-h-screen bg-[#0F0F0F] text-white p-8 space-y-8">
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-semibold text-white">User Dashboard</h1>
-        <div className="flex gap-4">
+      <div className="flex gap-4">
           <Link 
             to="/tickets/create" 
             className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2"

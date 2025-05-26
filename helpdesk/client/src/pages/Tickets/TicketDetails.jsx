@@ -10,16 +10,16 @@ const TicketDetails = () => {
   const [error, setError] = useState("");
 
   const fetchTicket = useCallback(async () => {
-    try {
+      try {
       setLoading(true);
       const { data } = await api.get(`/api/tickets/${id}`);
-      setTicket(data);
+        setTicket(data);
       setError("");
-    } catch (err) {
+      } catch (err) {
       setError("Failed to load ticket. Please try again.");
-    } finally {
-      setLoading(false);
-    }
+      } finally {
+        setLoading(false);
+      }
   }, [id]);
 
   useEffect(() => {

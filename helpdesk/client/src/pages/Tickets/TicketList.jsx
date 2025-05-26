@@ -12,18 +12,18 @@ const TicketList = () => {
     search: "",
   });
 
-  const fetchTickets = async () => {
-    try {
+    const fetchTickets = async () => {
+      try {
       setLoading(true);
       const { data } = await api.get("/api/tickets");
-      setTickets(data);
+        setTickets(data);
       setError("");
     } catch (err) {
       setError("Failed to fetch tickets. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  };
+      } finally {
+        setLoading(false);
+      }
+    };
 
   useEffect(() => {
     fetchTickets();

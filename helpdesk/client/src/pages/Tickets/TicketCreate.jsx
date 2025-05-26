@@ -68,16 +68,16 @@ const TicketCreate = () => {
               <label htmlFor="title" className="block text-sm font-medium text-gray-300 mb-1">
                 Title
               </label>
-              <input
+        <input
                 id="title"
                 type="text"
-                name="title"
+          name="title"
                 value={form.title}
-                onChange={handleChange}
+          onChange={handleChange}
                 className="w-full px-4 py-2 bg-[#111] border border-gray-700 rounded-md text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="Brief description of the issue"
-                required
-              />
+          required
+        />
             </div>
 
             <div>
@@ -105,16 +105,16 @@ const TicketCreate = () => {
               <label htmlFor="description" className="block text-sm font-medium text-gray-300 mb-1">
                 Description
               </label>
-              <textarea
+        <textarea
                 id="description"
-                name="description"
+          name="description"
                 value={form.description}
-                onChange={handleChange}
+          onChange={handleChange}
                 rows="6"
                 className="w-full px-4 py-2 bg-[#111] border border-gray-700 rounded-md text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="Please provide detailed information about your issue..."
-                required
-              />
+          required
+        />
             </div>
 
             <div className="flex gap-4">
@@ -125,8 +125,8 @@ const TicketCreate = () => {
               >
                 Cancel
               </button>
-              <button
-                type="submit"
+        <button
+          type="submit"
                 disabled={loading}
                 className={`flex-1 px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
                   loading ? "opacity-75 cursor-not-allowed" : ""
@@ -154,9 +154,9 @@ const TicketCreate = () => {
                 ) : (
                   "Create Ticket"
                 )}
-              </button>
+        </button>
             </div>
-          </form>
+      </form>
         </div>
       </div>
     </div>

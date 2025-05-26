@@ -41,6 +41,9 @@ const Register = () => {
           <h2 className="text-3xl font-bold mb-6 text-white text-center">
             Create an Account
           </h2>
+          <p className="text-md font-medium text-purple-500 text-center mb-3">
+            Create an account as User
+          </p>
           {error && (
             <div className="mb-4 text-sm text-red-400 text-center">{error}</div>
           )}
