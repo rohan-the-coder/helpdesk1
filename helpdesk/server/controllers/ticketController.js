@@ -119,26 +119,19 @@ exports.updateTicket = async (req, res) => {
     }
 
     const userRole = req.user.role.toLowerCase();
-    // Allow agents to update ticket status and add comments
+    // Allow agents and admins to update ticket status and add comments
     if (userRole !== 'agent' && userRole !== 'admin' && ticket.createdBy.toString() !== req.user.userId) {
       return res.status(403).json({ message: "Not authorized to update this ticket" });
     }
 
     // Define allowed updates based on role
     const allowedUpdates = ['status'];
-    if (userRole === 'agent') {
-      // If agent is updating status, automatically assign the ticket
+    if (userRole === 'agent' || userRole === 'admin') {
+      // If agent or admin is updating status, automatically assign the ticket
       if (req.body.status === 'In Progress') {
         req.body.assignedTo = req.user.userId;
       }
     }
-
-    const updates = Object.keys(req.body)
-      .filter(key => allowedUpdates.includes(key) || key === 'assignedTo')
-      .reduce((obj, key) => {
-        obj[key] = req.body[key];
-        return obj;
-      }, {});
 
     // Add comment if provided
     if (req.body.comment) {
@@ -148,6 +141,13 @@ exports.updateTicket = async (req, res) => {
       });
       await ticket.save();
     }
+
+    const updates = Object.keys(req.body)
+      .filter(key => allowedUpdates.includes(key) || key === 'assignedTo')
+      .reduce((obj, key) => {
+        obj[key] = req.body[key];
+        return obj;
+      }, {});
 
     const updatedTicket = await Ticket.findByIdAndUpdate(
       req.params.id,

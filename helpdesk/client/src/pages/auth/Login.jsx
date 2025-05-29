@@ -6,7 +6,7 @@ import { useNavigate, Link } from "react-router-dom";
 const Login = () => {
   const { login, setLoading } = useAuth();
   const navigate = useNavigate();
-  const [form, setForm] = useState({ email: "", password: "", role: "user" });
+  const [form, setForm] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
 
   const handleChange = (e) =>
@@ -18,13 +18,7 @@ const Login = () => {
     setError("");
     
     try {
-      // Send login request with proper role capitalization
-      const loginData = {
-        ...form,
-        role: form.role.charAt(0).toUpperCase() + form.role.slice(1)
-      };
-      
-      const res = await authService.login(loginData);
+      const res = await authService.login(form);
       
       if (res?.user && res?.token) {
         login(res);
@@ -79,42 +73,7 @@ const Login = () => {
           )}
 
           <div className="space-y-4">
-            <div className="flex gap-4 mb-4">
-              <button
-                type="button"
-                onClick={() => setForm({ ...form, role: "user" })}
-                className={`flex-1 py-2 px-4 rounded-md transition ${
-                  form.role === "user"
-                    ? "bg-indigo-600 text-white"
-                    : "bg-gray-700 text-gray-300"
-                }`}
-              >
-                User
-              </button>
-              <button
-                type="button"
-                onClick={() => setForm({ ...form, role: "agent" })}
-                className={`flex-1 py-2 px-4 rounded-md transition ${
-                  form.role === "agent"
-                    ? "bg-indigo-600 text-white"
-                    : "bg-gray-700 text-gray-300"
-                }`}
-              >
-                Agent
-              </button>
-              <button
-                type="button"
-                onClick={() => setForm({ ...form, role: "admin" })}
-                className={`flex-1 py-2 px-4 rounded-md transition ${
-                  form.role === "admin"
-                    ? "bg-indigo-600 text-white"
-                    : "bg-gray-700 text-gray-300"
-                }`}
-              >
-                Admin
-              </button>
-            </div>
-            
+
             <input
               type="email"
               name="email"
@@ -139,7 +98,7 @@ const Login = () => {
             type="submit"
             className="mt-6 w-full py-2 bg-indigo-600 hover:bg-indigo-700 transition rounded-md text-white font-semibold"
           >
-            Login as {form.role.charAt(0).toUpperCase() + form.role.slice(1)}
+            Login
           </button>
 
           <p className="mt-4 text-sm text-gray-400 text-center">
