@@ -44,6 +44,23 @@ const AgentDashboard = () => {
     }
   };
 
+  const handleAddComment = async (ticketId) => {
+    try {
+      const response = await api.put(`/api/tickets/${ticketId}`, {
+        comment: comment
+      });
+      // Update the tickets list with the updated ticket
+      setTickets(tickets.map(ticket =>
+        ticket._id === ticketId ? response.data : ticket
+      ));
+      // Reset form
+      setSelectedTicket(null);
+      setComment("");
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
   const getStatusColor = (status) => {
     switch (status) {
       case "Open":
@@ -125,6 +142,12 @@ const AgentDashboard = () => {
                       disabled={ticket.status === "Resolved"}
                     >
                       Mark Resolved
+                    </button>
+                    <button
+                      onClick={() => handleAddComment(ticket._id)}
+                      className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded"
+                    >
+                      Add Comment
                     </button>
                     <button
                       onClick={() => setSelectedTicket(null)}

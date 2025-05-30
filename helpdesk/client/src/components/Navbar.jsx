@@ -10,6 +10,10 @@ const Navbar = () => {
   const [notifications, setNotifications] = useState([]);
   const [showNotifications, setShowNotifications] = useState(false);
 
+  // Debug: Log user data
+  console.log("User data:", user);
+  console.log("User role:", user?.role);
+
   useEffect(() => {
     const fetchNotifications = async () => {
       if (user) {
@@ -56,7 +60,11 @@ const Navbar = () => {
         {user ? (
           <>
             <NavLink
-              to="/dashboard"
+              to={
+                user.role === "admin" ? "/admin" : 
+                user.role === "Agent" ? "/agent" : 
+                "/dashboard"
+              }
               className={({ isActive }) =>
                 `text-gray-300 hover:text-white font-medium ${
                   isActive ? "border-b-2 border-blue-500" : ""
@@ -77,19 +85,7 @@ const Navbar = () => {
               Tickets
             </NavLink>
             
-
-            {user.role === "admin" && (
-              <NavLink
-                to="/admin"
-                className={({ isActive }) =>
-                  `text-gray-300 hover:text-white font-medium ${
-                    isActive ? "border-b-2 border-blue-500" : ""
-                  }`
-                }
-              >
-                Admin
-              </NavLink>
-            )}
+            {/* Remove individual Admin and Agent links since Dashboard handles routing */}
 
             <div className="relative">
               <button 

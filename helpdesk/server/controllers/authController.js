@@ -20,7 +20,7 @@ exports.register = async (req, res) => {
 };
 
 exports.login = async (req, res) => {
-  const { email, password, role } = req.body;
+  const { email, password } = req.body;
   try {
     // Find user by email
     const user = await User.findOne({ email });
@@ -29,13 +29,6 @@ exports.login = async (req, res) => {
     // Verify password
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) return res.status(400).json({ message: "Invalid email or password" });
-
-    // Check if the user's role matches the requested role (optional but recommended for security)
-    if (role && user.role.toLowerCase() !== role.toLowerCase()) {
-      return res.status(403).json({ 
-        message: `Access denied. You are not authorized to login as ${role}` 
-      });
-    }
 
     // Generate JWT token
     const token = jwt.sign(
