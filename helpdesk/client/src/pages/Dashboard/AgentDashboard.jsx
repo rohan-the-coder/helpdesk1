@@ -4,10 +4,12 @@ import api from "../../api";
 
 const AgentDashboard = () => {
   const [tickets, setTickets] = useState([]);
+  const [filteredTickets, setFilteredTickets] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedTicket, setSelectedTicket] = useState(null);
   const [comment, setComment] = useState("");
+  const [selectedStatus, setSelectedStatus] = useState(null);
 
   useEffect(() => {
     fetchTickets();
@@ -17,11 +19,24 @@ const AgentDashboard = () => {
     try {
       const response = await api.get("/api/tickets");
       setTickets(response.data);
+      setFilteredTickets(response.data);
       setLoading(false);
     } catch (err) {
       setError(err.message);
       setLoading(false);
     }
+  };
+
+  useEffect(() => {
+    if (selectedStatus) {
+      setFilteredTickets(tickets.filter(ticket => ticket.status === selectedStatus));
+    } else {
+      setFilteredTickets(tickets);
+    }
+  }, [selectedStatus, tickets]);
+
+  const getStatusCount = (status) => {
+    return tickets.filter(ticket => ticket.status === status).length;
   };
 
   const handleStatusUpdate = async (ticketId, newStatus) => {
@@ -89,6 +104,30 @@ const AgentDashboard = () => {
           <h1 className="text-3xl font-semibold">Agent Dashboard</h1>
         </div>
 
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          <div 
+            onClick={() => setSelectedStatus(selectedStatus === 'Open' ? null : 'Open')}
+            className={`cursor-pointer p-4 rounded-lg ${selectedStatus === 'Open' ? 'bg-yellow-600' : 'bg-gray-700'} hover:bg-opacity-90 transition-colors`}
+          >
+            <h3 className="text-lg font-semibold">Open Tickets</h3>
+            <p className="text-3xl font-bold">{getStatusCount('Open')}</p>
+          </div>
+          <div 
+            onClick={() => setSelectedStatus(selectedStatus === 'In Progress' ? null : 'In Progress')}
+            className={`cursor-pointer p-4 rounded-lg ${selectedStatus === 'In Progress' ? 'bg-blue-600' : 'bg-gray-700'} hover:bg-opacity-90 transition-colors`}
+          >
+            <h3 className="text-lg font-semibold">In Progress</h3>
+            <p className="text-3xl font-bold">{getStatusCount('In Progress')}</p>
+          </div>
+          <div 
+            onClick={() => setSelectedStatus(selectedStatus === 'Resolved' ? null : 'Resolved')}
+            className={`cursor-pointer p-4 rounded-lg ${selectedStatus === 'Resolved' ? 'bg-green-600' : 'bg-gray-700'} hover:bg-opacity-90 transition-colors`}
+          >
+            <h3 className="text-lg font-semibold">Resolved</h3>
+            <p className="text-3xl font-bold">{getStatusCount('Resolved')}</p>
+          </div>
+        </div>
+
         {error && (
           <div className="bg-red-900/50 border border-red-500 text-red-200 px-4 py-3 rounded relative">
             {error}
@@ -96,7 +135,7 @@ const AgentDashboard = () => {
         )}
 
         <div className="grid grid-cols-1 gap-6">
-          {tickets.map((ticket) => (
+          {filteredTickets.map((ticket) => (
             <div
               key={ticket._id}
               className="bg-[#1C1C1C] rounded-lg shadow-lg border border-gray-700 p-6"
