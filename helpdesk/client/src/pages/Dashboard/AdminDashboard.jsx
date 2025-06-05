@@ -4,16 +4,19 @@ import api from "../../api";
 
 const AdminDashboard = () => {
   const [tickets, setTickets] = useState([]);
+  const [filteredTickets, setFilteredTickets] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedTicket, setSelectedTicket] = useState(null);
   const [comment, setComment] = useState("");
+  const [selectedStatus, setSelectedStatus] = useState(null);
 
   useEffect(() => {
     const fetchTickets = async () => {
       try {
         const response = await api.get("/api/tickets");
         setTickets(response.data);
+        setFilteredTickets(response.data);
         setLoading(false);
       } catch (err) {
         setError(err.message);
@@ -23,6 +26,18 @@ const AdminDashboard = () => {
 
     fetchTickets();
   }, []);
+
+  useEffect(() => {
+    if (selectedStatus) {
+      setFilteredTickets(tickets.filter(ticket => ticket.status === selectedStatus));
+    } else {
+      setFilteredTickets(tickets);
+    }
+  }, [selectedStatus, tickets]);
+
+  const getStatusCount = (status) => {
+    return tickets.filter(ticket => ticket.status === status).length;
+  };
 
   const handleStatusUpdate = async (ticketId, newStatus) => {
     try {
@@ -64,6 +79,30 @@ const AdminDashboard = () => {
     <div className="space-y-6">
       <h1 className="text-3xl font-semibold">Admin Dashboard</h1>
       <p className="text-gray-400">Overview of all system activity, users, and agents.</p>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <div 
+          onClick={() => setSelectedStatus(selectedStatus === 'Open' ? null : 'Open')}
+          className={`cursor-pointer p-4 rounded-lg ${selectedStatus === 'Open' ? 'bg-yellow-600' : 'bg-gray-700'} hover:bg-opacity-90 transition-colors`}
+        >
+          <h3 className="text-lg font-semibold">Open Tickets</h3>
+          <p className="text-3xl font-bold">{getStatusCount('Open')}</p>
+        </div>
+        <div 
+          onClick={() => setSelectedStatus(selectedStatus === 'In Progress' ? null : 'In Progress')}
+          className={`cursor-pointer p-4 rounded-lg ${selectedStatus === 'In Progress' ? 'bg-blue-600' : 'bg-gray-700'} hover:bg-opacity-90 transition-colors`}
+        >
+          <h3 className="text-lg font-semibold">In Progress</h3>
+          <p className="text-3xl font-bold">{getStatusCount('In Progress')}</p>
+        </div>
+        <div 
+          onClick={() => setSelectedStatus(selectedStatus === 'Resolved' ? null : 'Resolved')}
+          className={`cursor-pointer p-4 rounded-lg ${selectedStatus === 'Resolved' ? 'bg-green-600' : 'bg-gray-700'} hover:bg-opacity-90 transition-colors`}
+        >
+          <h3 className="text-lg font-semibold">Resolved</h3>
+          <p className="text-3xl font-bold">{getStatusCount('Resolved')}</p>
+        </div>
+      </div>
       
       <div className="flex gap-4 flex-wrap mb-6">
         <Link to="/admin/manage-users" className="bg-gray-600 hover:bg-gray-700 px-4 py-2 rounded">Manage Users & Agents</Link>
@@ -73,7 +112,7 @@ const AdminDashboard = () => {
       <div className="bg-gray-800 rounded-lg p-6">
         <h2 className="text-xl font-semibold mb-4">All Tickets</h2>
         <div className="space-y-4">
-          {tickets.map((ticket) => (
+          {filteredTickets.map((ticket) => (
             <div key={ticket._id} className="bg-gray-700 p-4 rounded-lg">
               <div className="flex justify-between items-start mb-4">
                 <div>
